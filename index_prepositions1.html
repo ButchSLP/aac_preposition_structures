@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Place Obby</title>
+    <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
+    <style>
+        /* Blocky palette: night-sky base, stud grid, bright brick colours */
+        :root {
+            --night: #14161a;
+            --panel: #23262d;
+            --panel-2: #2f333c;
+            --line: #4a4f5b;
+            --red: #e2231a;
+            --blue: #00a2ff;
+            --green: #00b06f;
+            --yellow: #ffc400;
+            --orange: #ff7a1a;
+            --text: #ffffff;
+            --font: 'Arial Black', 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+        }
+
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: var(--font); touch-action: none; color: var(--text);
+            background-color: var(--night);
+            background-image: radial-gradient(circle at 50% 50%, #262a31 0 5px, transparent 6px);
+            background-size: 34px 34px;
+        }
+        body { display: flex; align-items: center; justify-content: center; padding: 5px; box-sizing: border-box; }
+
+        @supports (height: 100dvh) { html, body { height: 100dvh; } }
+        :root { --sw: 95px; }  /* symbol size; JS shrinks it if a screen is too short */
+
+        /* Prevent selection and ghosting */
+        body, #game-container, .symbol, .bank, #drop-zone, #workspace {
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        }
+        img { -webkit-user-drag: none; }
+
+        #home-link {
+            position: absolute; top: 15px; left: 15px; background: var(--yellow); padding: 0;
+            border-radius: 8px; text-decoration: none; font-size: 24px; z-index: 4000;
+            display: flex; align-items: center; justify-content: center; width: 55px; height: 55px;
+            border: 4px solid #000; box-shadow: 0 6px 0 #a67f00; transition: transform 0.1s, box-shadow 0.1s;
+        }
+        #home-link:active { transform: translateY(4px); box-shadow: 0 2px 0 #a67f00; }
+
+        #game-container, #result-screen {
+            width: 100%; max-width: 1200px; height: 100%; background: var(--panel);
+            padding: 15px; border-radius: 12px; box-shadow: 0 8px 0 #000;
+            display: flex; flex-direction: column; box-sizing: border-box;
+            position: relative; overflow: hidden; border: 6px solid #000;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Progress: row of checkpoint blocks */
+        #progress-container { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 10px; background: var(--night); padding: 10px; border-radius: 8px; flex-shrink: 0; flex-wrap: wrap; border: 3px solid var(--line); }
+        .progress-node { width: 26px; height: 26px; border-radius: 4px; background: var(--panel-2); border: 3px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: #9aa0ad; }
+        .node-active { border-color: var(--yellow); background: #3a3420; color: var(--yellow); transform: translateY(-3px); box-shadow: 0 4px 0 var(--yellow); }
+        .node-complete { background: var(--green); border-color: #006b43; color: white; }
+        .score-display { font-weight: 900; color: var(--yellow); margin-left: 12px; display: flex; align-items: center; gap: 6px; }
+        .coin { display: inline-block; width: 16px; height: 16px; border-radius: 50%; background: var(--yellow); border: 3px solid #a67f00; box-sizing: border-box; }
+
+        #main-content { display: flex; flex-direction: row; gap: 15px; flex: 1 1 0; min-height: 0; min-width: 0; }
+        #gif-container { flex: 1 1 0; min-width: 0; min-height: 0; background: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 4px solid var(--blue); overflow: hidden; }
+        #trial-gif { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        #workspace { flex: 1.2 1 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+        #drop-zone { flex-shrink: 0; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; background: var(--night); border: 4px dashed var(--blue); min-height: calc(var(--sw) * 0.95 + 30px); box-sizing: content-box; border-radius: 8px; justify-content: center; align-items: center; }
+        .bank { flex: 1 1 0; min-height: 0; display: flex; gap: 8px; justify-content: center; align-content: center; flex-wrap: wrap; padding: 10px; background: var(--panel-2); border-radius: 8px; overflow: hidden; border: 3px solid var(--line); }
+
+        .symbol { padding: 2px; border-radius: 6px; cursor: grab; color: #111; width: var(--sw); height: calc(var(--sw) * 0.947); font-size: calc(var(--sw) * 0.135); flex-shrink: 0; box-shadow: 0 5px 0 rgba(0,0,0,0.55); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: white; }
+        .symbol:active { cursor: grabbing; }
+        .symbol img { width: calc(var(--sw) * 0.76); height: calc(var(--sw) * 0.76); object-fit: contain; pointer-events: none; }
+
+        .who { border: 5px solid var(--yellow); }
+        .doing { border: 5px solid var(--green); }
+        .what { border: 5px solid var(--orange); }
+        .prep { border: 5px solid #6b7079; }   /* prepositions: dark gray */
+
+        #feedback { flex-shrink: 0; font-size: 1.4rem; min-height: 30px; line-height: 30px; text-align: center; margin: 5px 0; text-shadow: 0 3px 0 #000; }
+
+        button { padding: 12px 30px; font-size: 1rem; cursor: pointer; border-radius: 8px; border: 4px solid #000; font-family: var(--font); text-transform: uppercase; transition: transform 0.1s, box-shadow 0.1s; }
+        button:active { transform: translateY(4px); box-shadow: none !important; }
+        button:focus-visible, #home-link:focus-visible { outline: 4px solid #fff; outline-offset: 3px; }
+        #check-btn { background: var(--blue); color: white; box-shadow: 0 6px 0 #0069a8; }
+        #next-btn { background: var(--orange); color: white; box-shadow: 0 6px 0 #b04f00; display: none; }
+
+        /* Title screen */
+        #audio-unlock-overlay { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+            background-color: #0d0f12;
+            background-image: radial-gradient(circle at 50% 50%, #1d2128 0 7px, transparent 8px);
+            background-size: 42px 42px; }
+        #title-sign { background: var(--red); border: 6px solid #000; border-radius: 10px; padding: 18px 40px 22px; box-shadow: 0 10px 0 #7d120d; transform: rotate(-2deg); margin-bottom: 36px; }
+        #title-sign h1 { font-size: 3.6rem; margin: 0; letter-spacing: 2px; text-shadow: 0 5px 0 #000; }
+        #title-sign h2 { margin: 6px 0 0 0; color: var(--yellow); font-size: 1.4rem; text-shadow: 0 3px 0 #000; }
+        #start-btn { background: var(--green); color: white; font-size: 2rem; padding: 20px 70px; box-shadow: 0 8px 0 #006b43; text-shadow: 0 3px 0 rgba(0,0,0,0.5); }
+        #settings-btn { background: var(--panel-2); color: white; margin-top: 28px; padding: 10px 25px; box-shadow: 0 5px 0 #000; }
+
+        #settings-modal { display: none; position: absolute; background: var(--panel); color: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 0 #000; z-index: 3500; width: 320px; border: 6px solid #000; }
+        #settings-modal h3 { color: var(--yellow); margin-top: 0; }
+        #settings-modal .val { color: var(--blue); }
+        input[type=range] { accent-color: var(--blue); }
+
+        /* Block characters (pure CSS, no image files needed) */
+        .bm { --u: 8px; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .bm .head { width: calc(var(--u) * 3); height: calc(var(--u) * 3); background: var(--skin, #ffc400); border-radius: calc(var(--u) * 0.4); border: calc(var(--u) * 0.25) solid #000; box-sizing: border-box; position: relative; }
+        .bm .head::before, .bm .head::after { content: ''; position: absolute; top: 38%; width: calc(var(--u) * 0.45); height: calc(var(--u) * 0.45); background: #000; border-radius: 50%; }
+        .bm .head::before { left: 24%; } .bm .head::after { right: 24%; }
+        .bm .torso { width: calc(var(--u) * 4); height: calc(var(--u) * 4); background: var(--shirt, #00a2ff); border: calc(var(--u) * 0.25) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); position: relative; margin-top: calc(var(--u) * 0.2); }
+        .bm .arm { position: absolute; top: calc(var(--u) * -0.25); width: calc(var(--u) * 1.5); height: calc(var(--u) * 4); background: var(--skin, #ffc400); border: calc(var(--u) * 0.25) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); transform-origin: 50% 8%; }
+        .bm .arm.l { left: calc(var(--u) * -1.75); } .bm .arm.r { right: calc(var(--u) * -1.75); }
+        .bm .legs { display: flex; gap: calc(var(--u) * 0.2); margin-top: calc(var(--u) * 0.2); }
+        .bm .leg { width: calc(var(--u) * 1.9); height: calc(var(--u) * 4); background: var(--pants, #00b06f); border: calc(var(--u) * 0.25) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); }
+        .bm.p2 { --skin: #ffd9a8; --shirt: #e2231a; --pants: #2f333c; }
+        .bm.p3 { --skin: #c68642; --shirt: #ffc400; --pants: #00a2ff; }
+        .bm.p4 { --skin: #ffc400; --shirt: #00b06f; --pants: #7a3fb8; }
+
+        @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+        @keyframes wave-l { 0%,100% { transform: rotate(150deg); } 50% { transform: rotate(210deg); } }
+        @keyframes wave-r { 0%,100% { transform: rotate(-210deg); } 50% { transform: rotate(-150deg); } }
+        .bm.dance { animation: bob 0.6s ease-in-out infinite; }
+        .bm.dance .arm.l { animation: wave-l 0.6s ease-in-out infinite; }
+        .bm.dance .arm.r { animation: wave-r 0.6s ease-in-out infinite; }
+        .title-bm { position: absolute; pointer-events: none; z-index: 3005; }
+        #title-bm-tr { top: 40px; right: 70px; --u: 14px; }
+        #title-bm-bl { bottom: 40px; left: 70px; --u: 14px; }
+
+        /* Falling tacos */
+        .taco { position: absolute; top: -60px; line-height: 1; animation: fall linear forwards; pointer-events: none; will-change: transform; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+
+        /* Level-up / win overlays */
+        #dance-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1500; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(13, 15, 18, 0.93); overflow: hidden; }
+        #celebration-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0d0f12; z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; transition: opacity 1s ease-in-out; overflow: hidden; }
+        .banner { background: var(--yellow); color: #111; border: 6px solid #000; border-radius: 10px; padding: 10px 40px; font-size: 3rem; box-shadow: 0 8px 0 #a67f00; margin-bottom: 40px; transform: rotate(-2deg); }
+        .dance-row { display: flex; gap: 60px; align-items: flex-end; }
+        .dance-row .bm { --u: 12px; }
+        .dance-row .bm:nth-child(2) { animation-delay: 0.15s; }
+        .dance-row .bm:nth-child(3) { animation-delay: 0.3s; }
+        .tap-hint { color: white; margin-top: 50px; font-size: 1.5rem; text-shadow: 0 3px 0 #000; }
+
+        /* Results */
+        #result-screen h1 { margin: 0; color: var(--yellow); text-shadow: 0 4px 0 #000; }
+        #final-pct { font-size: 3rem; color: var(--green); text-shadow: 0 4px 0 #000; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: var(--night); padding: 12px; border-bottom: 4px solid var(--blue); text-align: left; }
+        td { padding: 10px; border-bottom: 2px solid var(--line); font-family: 'Trebuchet MS', Arial, sans-serif; font-weight: bold; }
+
+        /* Buttons always stay on screen */
+        #button-row { display: flex; justify-content: center; gap: 15px; flex-shrink: 0; padding-bottom: 6px; }
+        #result-screen > button { flex-shrink: 0; }
+
+        /* iPad portrait / narrow windows: stack picture above the workspace */
+        @media (max-aspect-ratio: 1/1), (max-width: 760px) {
+            #main-content { flex-direction: column; }
+            #gif-container { flex: 1 1 0; }
+            #workspace { flex: 1.5 1 0; }
+        }
+
+        /* Short screens (Chromebooks, landscape iPads, small laptops) */
+        @media (max-height: 760px) {
+            body { padding: 3px; }
+            #game-container, #result-screen { padding: 8px; border-width: 4px; }
+            #progress-container { padding: 5px; gap: 4px; margin-bottom: 6px; }
+            .progress-node { width: 22px; height: 22px; font-size: 0.62rem; }
+            button { padding: 9px 22px; font-size: 0.9rem; }
+            #feedback { font-size: 1.15rem; min-height: 24px; line-height: 24px; margin: 2px 0; }
+            #drop-zone { padding: 6px; }
+            .bank { padding: 6px; }
+            #title-sign h1 { font-size: 2.6rem; }
+            #title-sign { margin-bottom: 24px; }
+            #start-btn { font-size: 1.6rem; padding: 14px 50px; }
+            #settings-btn { margin-top: 18px; }
+            .banner { font-size: 2.2rem; margin-bottom: 24px; }
+            .dance-row .bm { --u: 8px; }
+            .dance-row { gap: 40px; }
+            .tap-hint { margin-top: 28px; font-size: 1.2rem; }
+        }
+        @media (max-height: 520px), (max-width: 700px) {
+            .title-bm { display: none; }
+        }
+        @media (max-width: 900px) { #progress-container { padding-left: 70px; padding-right: 70px; } }
+        #settings-modal { max-width: calc(100vw - 30px); box-sizing: border-box; }
+
+    
+        /* ===== Scene + new controls ===== */
+        #gif-container { position: relative; background: #58b4f5; }
+        #scene { position: absolute; left: 50%; top: 50%; width: 520px; height: 340px; margin: -170px 0 0 -260px; transform-origin: center center; }
+        #scene .sky { position: absolute; left: -1500px; right: -1500px; top: -1500px; height: 1700px; background: linear-gradient(#58b4f5 0, #58b4f5 88%, #c4e8ff 100%); }
+        #scene .cloud { position: absolute; width: 90px; height: 24px; background: #fff; border-radius: 6px; opacity: 0.95; }
+        #scene .cloud::before { content: ''; position: absolute; left: 18px; top: -16px; width: 44px; height: 20px; background: #fff; border-radius: 6px; }
+        #scene .baseplate { position: absolute; left: -1500px; right: -1500px; top: 200px; height: 1700px; box-sizing: border-box; border-top: 6px solid #1f6b2c;
+            background-color: #3fa14f; background-image: radial-gradient(circle at 50% 50%, #58bd68 0 6px, transparent 7px); background-size: 40px 40px; }
+        #scene .shadow { position: absolute; width: 140px; height: 18px; border-radius: 50%; background: rgba(0,0,0,0.28); z-index: 1; }
+
+        #scene .crate-back { position: absolute; width: 150px; height: 110px; box-sizing: border-box; border: 6px solid #000; border-radius: 6px; z-index: 2;
+            background: linear-gradient(#3e2208, #6b3f17); }
+        #scene .crate-front { position: absolute; width: 150px; height: 85px; box-sizing: border-box; border: 6px solid #000; border-radius: 4px 4px 6px 6px; z-index: 4;
+            background: repeating-linear-gradient(0deg, #c98f4e 0 20px, #b07434 20px 24px); }
+        #scene .crate-front::before { content: ''; position: absolute; left: -6px; right: -6px; top: -6px; height: 16px; box-sizing: border-box; background: #e8b673; border: 6px solid #000; border-radius: 4px; }
+
+        #scene .bm.actor { position: absolute; --u: 10px; width: 40px; }
+        .bm .hair { position: absolute; left: calc(var(--u) * -0.25); right: calc(var(--u) * -0.25); top: calc(var(--u) * -0.5); height: calc(var(--u) * 1.0); background: #4a2a10; border: calc(var(--u) * 0.2) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); }
+        .bm .hair.long::before, .bm .hair.long::after { content: ''; position: absolute; top: calc(var(--u) * 0.1); width: calc(var(--u) * 0.75); height: calc(var(--u) * 2.3); background: #4a2a10; border: calc(var(--u) * 0.2) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); }
+        .bm .hair.long::before { left: calc(var(--u) * -0.6); }
+        .bm .hair.long::after { right: calc(var(--u) * -0.6); }
+
+        #replay-btn { position: absolute; right: 10px; bottom: 10px; z-index: 10; padding: 8px 16px; font-size: 0.85rem; background: var(--yellow); color: #111; box-shadow: 0 5px 0 #a67f00; }
+        .symbol .emoji-fallback.word { font-family: var(--font); font-size: calc(var(--sw) * 0.42); }
+        .symbol .emoji-fallback { height: calc(var(--sw) * 0.76); font-size: calc(var(--sw) * 0.55); display: flex; align-items: center; justify-content: center; pointer-events: none; }
+
+        #settings-modal { max-height: 92vh; overflow-y: auto; }
+        .prep-opt { display: flex; align-items: center; gap: 12px; padding: 5px 0; font-size: 1.05rem; cursor: pointer; }
+        .prep-opt input { width: 24px; height: 24px; accent-color: var(--blue); margin: 0; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" id="home-link" aria-label="Home">🏠</a>
+
+    <div id="audio-unlock-overlay">
+        <div id="title-bm-tr" class="bm title-bm p2 dance"></div>
+        <div id="title-bm-bl" class="bm title-bm p3 dance"></div>
+
+        <div id="start-card">
+            <div id="title-sign">
+                <h1>PLACE OBBY</h1>
+                <h2>Where is the builder? Build the sentence!</h2>
+            </div>
+            <button id="start-btn" onclick="startApp()">START</button>
+            <br>
+            <button id="settings-btn" onclick="toggleSettings()">⚙ SETTINGS</button>
+        </div>
+
+        <div id="settings-modal">
+            <h3>Game Setup</h3>
+            <div style="display:flex; justify-content:space-between;"><span>Levels:</span><span id="trial-count-val" class="val">10</span></div>
+            <input type="range" id="trial-slider" min="5" max="20" step="5" value="10" oninput="updateTrialText(this.value)" style="width:100%; margin:15px 0;">
+            <div style="display:flex; justify-content:space-between;"><span>Foils:</span><span id="foil-val" class="val">2</span></div>
+            <input type="range" id="foil-slider" min="0" max="3" value="2" oninput="updateFoilText(this.value)" style="width:100%; margin:15px 0;">
+            <label class="prep-opt" style="margin-top:4px;"><input type="checkbox" id="is-toggle" onchange="requireIs = this.checked"> Add the "is" symbol</label>
+            <div style="margin:10px 0 4px;">Words to practice:</div>
+            <label class="prep-opt"><input type="checkbox" value="on" checked onchange="togglePrep(this)"> on</label>
+            <label class="prep-opt"><input type="checkbox" value="in" checked onchange="togglePrep(this)"> in</label>
+            <label class="prep-opt"><input type="checkbox" value="under" checked onchange="togglePrep(this)"> under</label>
+            <label class="prep-opt"><input type="checkbox" value="out" checked onchange="togglePrep(this)"> out</label>
+            <label class="prep-opt"><input type="checkbox" value="behind" checked onchange="togglePrep(this)"> behind</label>
+            <button onclick="toggleSettings()" style="background:var(--blue); color:white; width:100%; margin-top:10px; box-shadow:0 6px 0 #0069a8;">SAVE</button>
+        </div>
+    </div>
+
+<div id="dance-overlay" onclick="nextTrial()">
+        <div class="banner">LEVEL UP!</div>
+        <div class="dance-row" id="dance-row"></div>
+        <div class="tap-hint">TAP TO CONTINUE!</div>
+    </div>
+
+    <div id="celebration-overlay">
+        <div class="banner">YOU WIN!</div>
+        <div class="dance-row" id="win-row"></div>
+    </div>
+
+    <div id="game-container">
+        <div id="progress-container"><div class="score-display"><span class="coin"></span>Coins: <span id="score-val">0</span></div></div>
+        <div id="main-content">
+            <div id="gif-container" onclick="playScene()"><div id="scene"></div><button id="replay-btn" aria-label="Watch again">▶ Watch again</button></div>
+            <div id="workspace">
+                <div id="drop-zone"></div>
+                <div class="bank" id="word-bank"></div>
+                <div id="feedback"></div>
+                <div id="button-row">
+                    <button id="check-btn" onclick="checkAnswer()">Check Answer</button>
+                    <button id="next-btn" onclick="nextTrial()">Next Level &rarr;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <div style="text-align:center; padding: 10px;">
+            <h1>Run Report</h1>
+            <div id="final-pct">0%</div>
+        </div>
+        <div style="flex-grow: 1; overflow-y: auto; padding: 0 20px;">
+            <table>
+                <thead><tr><th>#</th><th>Sentence</th><th>Result</th></tr></thead>
+                <tbody id="log-body"></tbody>
+            </table>
+        </div>
+        <button onclick="location.reload()" style="background:var(--blue); color:white; margin:20px auto; display:block; box-shadow:0 6px 0 #0069a8;">Play Again</button>
+    </div>
+
+    <script>
+        let numFoils = 2;
+        let totalTrialsRequested = 10;
+        let sessionTrials = [];
+        let currentIndex = 0, score = 0, trialLog = [];
+
+        // Loop music logic (swap these file names for any songs you like)
+        let currentDanceSong = new Audio();
+        const danceSongs = [
+            'sounds/song-one.mp3',
+            'sounds/song-two.mp3',
+            'sounds/song-three.mp3',
+            'sounds/dogman-song-four.mp3',
+            'sounds/dogman-song-five.mp3'
+        ];
+
+        const sounds = {
+            drop: new Audio('sounds/drop.mp3'),
+            incorrect: new Audio('sounds/incorrect_answer.mp3'),
+            celebration: new Audio('sounds/celebration_tacos.mp3')
+        };
+
+        // ---- Words & symbols ----
+        const PREPS = ['on', 'in', 'under', 'out', 'behind'];
+        const WHO_IMG = { He: 'symbols/he.png', She: 'symbols/she.png' };
+        const OBJECT = { text: 'box', img: 'symbols/box.png', emoji: '📦' };   // add symbols/box.png any time; the emoji shows until then
+        let enabledPreps = new Set(PREPS);
+        let requireIs = false;   // when true, sentences are She / is / under / box
+
+        function shuffle(a) { return [...a].sort(() => 0.5 - Math.random()); }
+
+        function buildSession() {
+            const pool = PREPS.filter(p => enabledPreps.has(p));
+            const list = [];
+            let last = null;
+            while (list.length < totalTrialsRequested) {
+                const round = shuffle(pool);
+                if (round.length > 1 && round[0] === last) round.push(round.shift());
+                for (const p of round) {
+                    if (list.length >= totalTrialsRequested) break;
+                    list.push(p); last = p;
+                }
+            }
+            return list.map(prep => ({
+                prep,
+                who: Math.random() < 0.5 ? 'He' : 'She',
+                look: ['', 'p2', 'p3', 'p4'][Math.floor(Math.random() * 4)]
+            }));
+        }
+
+        // ---- Block characters & falling tacos ----
+        const BM_HTML = '<div class="head"></div><div class="torso"><div class="arm l"></div><div class="arm r"></div></div><div class="legs"><div class="leg"></div><div class="leg"></div></div>';
+        document.querySelectorAll('.title-bm').forEach(el => el.innerHTML = BM_HTML);
+
+        function fillRow(id) {
+            const row = document.getElementById(id);
+            row.innerHTML = "";
+            ["", "p2", "p3", "p4"].slice(0, id === 'win-row' ? 4 : 3).forEach(p => {
+                const d = document.createElement('div');
+                d.className = `bm dance ${p}`; d.innerHTML = BM_HTML;
+                row.appendChild(d);
+            });
+        }
+
+        function rainTacos(overlayId) {
+            const o = document.getElementById(overlayId);
+            o.querySelectorAll('.taco').forEach(c => c.remove());
+            for (let i = 0; i < 28; i++) {
+                const t = document.createElement('div');
+                t.className = 'taco';
+                t.textContent = '🌮';
+                t.style.left = Math.random() * 96 + '%';
+                t.style.fontSize = (22 + Math.random() * 26) + 'px';
+                t.style.animationDuration = (3 + Math.random() * 3) + 's';
+                t.style.animationDelay = (Math.random() * 2.5) + 's';
+                o.appendChild(t);
+            }
+        }
+
+        
+        // ---- The animated scene (all drawn with CSS: no image files) ----
+        // Scene is a fixed 520 x 340 stage that gets scaled to fit the picture area.
+        const BOX = { x: 185, top: 160, frontOffset: 25 };
+        const ACTOR = {   // final resting spot of the builder: centre-x, top-y, layer
+            on:     { cx: 260, top: 51,  z: 5 },
+            in:     { cx: 260, top: 135, z: 3 },
+            out:    { cx: 420, top: 156, z: 3 },
+            behind: { cx: 260, top: 92,  z: 1 },
+            under:  { cx: 260, top: 156, z: 5 }
+        };
+
+        function sceneBM(trial) {
+            const hair = '<div class="hair' + (trial.who === 'She' ? ' long' : '') + '"></div>';
+            return '<div class="head">' + hair + '</div><div class="torso"><div class="arm l"></div><div class="arm r"></div></div><div class="legs"><div class="leg"></div><div class="leg"></div></div>';
+        }
+
+        function renderScene(trial) {
+            const sc = document.getElementById('scene');
+            const a = ACTOR[trial.prep];
+            const boxTop = (trial.prep === 'under') ? 20 : BOX.top;
+            const shadow = (trial.prep === 'under') ? '<div class="shadow" style="left:' + (BOX.x + 5) + 'px; top:262px;"></div>' : '';
+            sc.innerHTML =
+                '<div class="sky"></div>' +
+                '<div class="cloud" style="left:40px; top:50px;"></div>' +
+                '<div class="cloud" style="left:380px; top:25px;"></div>' +
+                '<div class="baseplate"></div>' + shadow +
+                '<div class="crate-back" style="left:' + BOX.x + 'px; top:' + boxTop + 'px;"></div>' +
+                '<div class="crate-front" style="left:' + BOX.x + 'px; top:' + (boxTop + BOX.frontOffset) + 'px;"></div>' +
+                '<div class="bm actor ' + trial.look + '" style="left:' + (a.cx - 20) + 'px; top:' + a.top + 'px; z-index:' + a.z + ';">' + sceneBM(trial) + '</div>';
+        }
+
+        function fitScene() {
+            const c = document.getElementById('gif-container');
+            const sc = document.getElementById('scene');
+            if (!c.clientWidth || !c.clientHeight) return;
+            const k = Math.min(c.clientWidth / 520, c.clientHeight / 340);
+            sc.style.transform = 'scale(' + k + ')';
+        }
+        window.addEventListener('resize', fitScene);
+        window.addEventListener('orientationchange', () => setTimeout(fitScene, 300));
+        if (window.ResizeObserver) new ResizeObserver(fitScene).observe(document.getElementById('gif-container'));
+
+        // Movement paths are offsets from the final spot: {x, y, ms, ease}
+        function walk(x0, x1, y, ms) {
+            const n = Math.max(2, Math.round(ms / 260)), out = [];
+            for (let i = 1; i <= n; i++) out.push({ x: x0 + (x1 - x0) * i / n, y: (i % 2 ? y - 7 : y), ms: ms / n });
+            out[out.length - 1].y = y;
+            return out;
+        }
+        const PATHS = {
+            on:     () => [{ x: -240, y: 105, ms: 0 }, ...walk(-240, -125, 105, 1000), { x: -65, y: -30, ms: 380, ease: 'ease-out' }, { x: 0, y: 0, ms: 380, ease: 'ease-in' }],
+            in:     () => [{ x: -240, y: 21, ms: 0 },  ...walk(-240, -130, 21, 1000),  { x: -50, y: -95, ms: 380, ease: 'ease-out' }, { x: 0, y: 0, ms: 380, ease: 'ease-in' }],
+            out:    () => [{ x: -160, y: -21, ms: 0 }, { x: -160, y: -21, ms: 500 }, { x: -100, y: -105, ms: 420, ease: 'ease-out' }, { x: 0, y: 0, ms: 420, ease: 'ease-in' }],
+            behind: () => [{ x: 240, y: 0, ms: 0 }, ...walk(240, 0, 0, 1500)],
+            under:  () => [{ x: -240, y: 0, ms: 0 }, ...walk(-240, 0, 0, 1500)]
+        };
+
+        let sceneAnims = [];
+        function playScene() {
+            sceneAnims.forEach(an => { try { an.cancel(); } catch (e) {} });
+            sceneAnims = [];
+            const trial = sessionTrials[currentIndex];
+            const actor = document.querySelector('#scene .actor');
+            if (!trial || !actor || !actor.animate) return;   // no animation support: scene simply shows the final position
+
+            const segs = PATHS[trial.prep]();
+            const total = segs.reduce((t, sg) => t + sg.ms, 0);
+            let t = 0;
+            const frames = segs.map((sg, i) => {
+                t += sg.ms;
+                return { transform: 'translate(' + sg.x + 'px,' + sg.y + 'px)', offset: Math.min(1, t / total),
+                         easing: (segs[i + 1] && segs[i + 1].ease) || 'linear' };
+            });
+            frames[0].offset = 0;
+            sceneAnims.push(actor.animate(frames, { duration: total, fill: 'none' }));
+
+            // The floating box in "under" bobs gently
+            if (trial.prep === 'under') {
+                document.querySelectorAll('#scene .crate-back, #scene .crate-front').forEach(el => {
+                    sceneAnims.push(el.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-7px)' }, { transform: 'translateY(0)' }],
+                                               { duration: 2200, iterations: Infinity, easing: 'ease-in-out' }));
+                });
+            }
+        }
+
+        // Shrink symbols just enough that the bank, drop zone and buttons all fit on screen
+        function fitSymbols(reset) {
+            const root = document.documentElement;
+            const bank = document.getElementById('word-bank');
+            const ws = document.getElementById('workspace');
+            let sw = reset ? 95 : (parseFloat(getComputedStyle(root).getPropertyValue('--sw')) || 95);
+            root.style.setProperty('--sw', sw + 'px');
+            let guard = 0;
+            while (sw > 44 && guard++ < 60 &&
+                   (bank.scrollHeight > bank.clientHeight + 1 || bank.scrollWidth > bank.clientWidth + 1 ||
+                    ws.scrollHeight > ws.clientHeight + 1)) {
+                sw -= 3;
+                root.style.setProperty('--sw', sw + 'px');
+            }
+        }
+        window.addEventListener('resize', () => { if (!document.getElementById('game-container').classList.contains('hidden')) fitSymbols(true); });
+        window.addEventListener('orientationchange', () => setTimeout(() => fitSymbols(true), 300));
+
+        
+        function toggleSettings() { const m = document.getElementById('settings-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+        function updateFoilText(val) { numFoils = parseInt(val); document.getElementById('foil-val').innerText = val; }
+        function updateTrialText(val) { totalTrialsRequested = parseInt(val); document.getElementById('trial-count-val').innerText = val; }
+        function togglePrep(cb) {
+            if (cb.checked) enabledPreps.add(cb.value);
+            else if (enabledPreps.size > 1) enabledPreps.delete(cb.value);
+            else cb.checked = true;   // always keep at least one word
+        }
+
+        function startApp() {
+            // Fix for Safari/iPad speech synthesis
+            speak("");
+
+            sessionTrials = buildSession();
+            const pContainer = document.getElementById('progress-container');
+            const scoreDisplay = pContainer.querySelector('.score-display');
+            pContainer.innerHTML = "";
+            for (let i = 0; i < sessionTrials.length; i++) {
+                const node = document.createElement('div'); node.className = "progress-node"; node.id = `node-${i}`; node.innerText = i + 1;
+                pContainer.appendChild(node);
+            }
+            pContainer.appendChild(scoreDisplay);
+            document.getElementById('audio-unlock-overlay').style.display = 'none';
+            loadTrial();
+        }
+
+        function speak(text, callback) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            if (callback) u.onend = callback;
+            window.speechSynthesis.speak(u);
+        }
+
+        function loadTrial() {
+            const nodes = document.querySelectorAll('.progress-node');
+            nodes.forEach((n, i) => { n.classList.remove('node-active'); if (i === currentIndex) n.classList.add('node-active'); });
+            const trial = sessionTrials[currentIndex];
+            document.getElementById('drop-zone').innerHTML = "";
+            document.getElementById('feedback').innerText = "";
+            document.getElementById('check-btn').style.display = "inline-block";
+            document.getElementById('next-btn').style.display = "none";
+
+            let items = [
+                { text: trial.who, type: "who", img: WHO_IMG[trial.who] },
+                { text: trial.prep, type: "prep", img: `symbols/${trial.prep}.png` },
+                { text: OBJECT.text, type: "what", img: OBJECT.img, emoji: OBJECT.emoji }
+            ];
+            if (requireIs) items.push({ text: 'is', type: "doing", img: 'symbols/is.png', fallbackText: 'is' });   // green = verb
+            // Foils are the other position words
+            shuffle(PREPS.filter(p => p !== trial.prep)).slice(0, numFoils).forEach(p => {
+                items.push({ text: p, type: "prep", img: `symbols/${p}.png` });
+            });
+
+            const bank = document.getElementById('word-bank');
+            bank.innerHTML = "";
+            shuffle(items).forEach(item => {
+                const div = document.createElement('div');
+                div.className = `symbol ${item.type}`; div.draggable = true; div.dataset.text = item.text;
+                const img = document.createElement('img');
+                img.src = item.img; img.draggable = false;
+                if (item.emoji || item.fallbackText) img.onerror = () => { const e = document.createElement('div'); e.className = 'emoji-fallback' + (item.emoji ? '' : ' word'); e.textContent = item.emoji || item.fallbackText; img.replaceWith(e); };
+                const label = document.createElement('span'); label.textContent = item.text;
+                div.appendChild(img); div.appendChild(label);
+                div.onpointerdown = () => speak(item.text);
+                div.addEventListener('dragstart', (e) => e.target.classList.add('dragging'));
+                div.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
+                bank.appendChild(div);
+            });
+            fitSymbols(true);
+
+            renderScene(trial);
+            fitScene();
+            playScene();
+        }
+
+        const dropZone = document.getElementById('drop-zone');
+        const wordBank = document.getElementById('word-bank');
+        [dropZone, wordBank].forEach(zone => {
+            zone.addEventListener('dragover', e => e.preventDefault());
+            zone.addEventListener('drop', e => {
+                const d = document.querySelector('.dragging');
+                if (d) { zone.appendChild(d); if(zone.id === "drop-zone") { sounds.drop.currentTime = 0; sounds.drop.play().catch(() => {}); } fitSymbols(false); }
+            });
+        });
+
+        function checkAnswer() {
+            const placed = Array.from(dropZone.children);
+            const trial = sessionTrials[currentIndex];
+            const sentence = `${trial.who} is ${trial.prep} the ${OBJECT.text}`;
+            const expected = requireIs ? [trial.who, 'is', trial.prep, OBJECT.text] : [trial.who, trial.prep, OBJECT.text];
+            const isCorrect = (placed.length === expected.length) && expected.every((w, i) => placed[i].dataset.text === w);
+            trialLog.push({ num: currentIndex + 1, target: sentence, status: isCorrect ? "Pass" : "Fail" });
+            if (isCorrect) {
+                document.getElementById('feedback').innerText = "LEVEL UP!"; document.getElementById('feedback').style.color = "#00e08a";
+                score++; document.getElementById('score-val').innerText = score;
+                document.getElementById(`node-${currentIndex}`).classList.add('node-complete');
+                speak(sentence, () => {
+                    fillRow('dance-row');
+                    rainTacos('dance-overlay');
+                    document.getElementById('dance-overlay').style.display = "flex";
+
+                    // Play random looping song
+                    currentDanceSong.src = danceSongs[Math.floor(Math.random() * danceSongs.length)];
+                    currentDanceSong.loop = true;
+                    currentDanceSong.play().catch(e => console.log("Audio play blocked."));
+                });
+            } else {
+                document.getElementById('feedback').innerText = "RESPAWN! TRY AGAIN!";
+                document.getElementById('feedback').style.color = "#ff5a52";
+                sounds.incorrect.play().catch(() => {});
+            }
+            document.getElementById('check-btn').style.display = "none";
+            document.getElementById('next-btn').style.display = "inline-block";
+        }
+
+        function nextTrial() {
+            document.getElementById('dance-overlay').style.display = "none";
+
+            // Stop and reset the looping music
+            currentDanceSong.pause();
+            currentDanceSong.currentTime = 0;
+
+            currentIndex++; if (currentIndex < sessionTrials.length) loadTrial(); else showResults();
+        }
+
+function showResults() {
+            // 1. Prepare results screen in background
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-pct').innerText = Math.round(score / totalTrialsRequested * 100) + "%";
+            document.getElementById('log-body').innerHTML = trialLog.map(t => `<tr><td>${t.num}</td><td>${t.target}</td><td style="color:${t.status==='Pass'?'#00e08a':'#ff5a52'}; font-weight:bold;">${t.status}</td></tr>`).join("");
+
+            // 2. Play celebration overlay if high score
+            if (score / totalTrialsRequested >= 0.7) {
+                const cOverlay = document.getElementById('celebration-overlay');
+                fillRow('win-row');
+                rainTacos('celebration-overlay');
+                cOverlay.style.display = 'flex';
+                cOverlay.style.opacity = '1';
+                sounds.celebration.play().catch(() => {});
+
+                // 3. Transition timer (5 seconds)
+                setTimeout(() => {
+                    cOverlay.style.opacity = '0'; // Start fade
+                    setTimeout(() => {
+                        cOverlay.style.display = 'none'; // Fully hide after fade
+                    }, 1000);
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
