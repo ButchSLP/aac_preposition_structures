@@ -202,8 +202,8 @@
         #scene .crate-front::before { content: ''; position: absolute; left: -6px; right: -6px; top: -6px; height: 16px; box-sizing: border-box; background: #e8b673; border: 6px solid #000; border-radius: 4px; }
 
         #scene .bm.actor { position: absolute; --u: 10px; width: 40px; }
-        .bm .hair { position: absolute; left: calc(var(--u) * -0.25); right: calc(var(--u) * -0.25); top: calc(var(--u) * -0.5); height: calc(var(--u) * 1.0); background: #4a2a10; border: calc(var(--u) * 0.2) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); }
-        .bm .hair.long::before, .bm .hair.long::after { content: ''; position: absolute; top: calc(var(--u) * 0.1); width: calc(var(--u) * 0.75); height: calc(var(--u) * 2.3); background: #4a2a10; border: calc(var(--u) * 0.2) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); }
+        .bm .hair { position: absolute; left: calc(var(--u) * -0.25); right: calc(var(--u) * -0.25); top: calc(var(--u) * -0.5); height: calc(var(--u) * 1.0); background: var(--hair, #4a2a10); border: calc(var(--u) * 0.2) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); }
+        .bm .hair.long::before, .bm .hair.long::after { content: ''; position: absolute; top: calc(var(--u) * 0.1); width: calc(var(--u) * 0.8); height: calc(var(--u) * 4.1); background: var(--hair, #4a2a10); border: calc(var(--u) * 0.2) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); }
         .bm .hair.long::before { left: calc(var(--u) * -0.6); }
         .bm .hair.long::after { right: calc(var(--u) * -0.6); }
 
@@ -212,6 +212,47 @@
         .symbol .emoji-fallback { height: calc(var(--sw) * 0.76); font-size: calc(var(--sw) * 0.55); display: flex; align-items: center; justify-content: center; pointer-events: none; }
 
         #settings-modal { max-height: 92vh; overflow-y: auto; }
+
+        /* ----- more feminine look ----- */
+        #scene .bm.actor { --hair: #4a2a10; --skirt: #ff7eb6; }
+        #scene .bm.actor.p2 { --hair: #e8c040; --skirt: #b06bff; }
+        #scene .bm.actor.p3 { --hair: #1a1a1a; --skirt: #ff7eb6; }
+        #scene .bm.actor.p4 { --hair: #b5451b; --skirt: #ff9f43; }
+        .bm .bow { position: absolute; top: calc(var(--u) * -0.95); right: calc(var(--u) * -0.35); width: calc(var(--u) * 1.5); height: calc(var(--u) * 1.0); background: #ff4fa0; border: calc(var(--u) * 0.2) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3); }
+        .bm .bow::after { content: ''; position: absolute; left: 50%; top: 50%; width: calc(var(--u) * 0.4); height: calc(var(--u) * 0.4); transform: translate(-50%, -50%); background: #ffd1e6; border-radius: 50%; }
+        .bm .lash { position: absolute; top: 31%; width: calc(var(--u) * 0.8); height: calc(var(--u) * 0.2); background: #000; }
+        .bm .lash.l { left: 10%; transform: rotate(-28deg); } .bm .lash.r { right: 10%; transform: rotate(28deg); }
+        .bm .blush { position: absolute; top: 60%; width: calc(var(--u) * 0.75); height: calc(var(--u) * 0.4); background: rgba(255, 90, 140, 0.55); border-radius: 50%; }
+        .bm .blush.l { left: 8%; } .bm .blush.r { right: 8%; }
+        .bm .skirt { position: absolute; left: 50%; top: calc(var(--u) * 5.9); width: calc(var(--u) * 5.4); height: calc(var(--u) * 2.4); transform: translateX(-50%); background: var(--skirt); border: calc(var(--u) * 0.25) solid #000; box-sizing: border-box; border-radius: calc(var(--u) * 0.3) calc(var(--u) * 0.3) calc(var(--u) * 0.7) calc(var(--u) * 0.7); }
+
+        /* ----- the pet (uses the "it" symbol) ----- */
+        #scene .actor.pet { position: absolute; width: 97px; height: 74px; --fur: #d9a066; --fur2: #b27a3c; --ear: #6e4220; }
+        #scene .actor.pet.p2 { --fur: #f1f1f1; --fur2: #c9c9c9; --ear: #8d8d8d; }
+        #scene .actor.pet.p3 { --fur: #8b5a2b; --fur2: #6b4220; --ear: #3d230e; }
+        #scene .actor.pet.p4 { --fur: #ecb64e; --fur2: #c98f2a; --ear: #8a5a12; }
+        .pet-inner { position: absolute; left: 0; top: 0; width: 84px; height: 64px; transform: scale(1.15); transform-origin: 0 0; }
+        .pet-inner > div { position: absolute; box-sizing: border-box; border: 4px solid #000; border-radius: 4px; }
+        .pet .tail { left: 2px; top: 14px; width: 20px; height: 11px; background: var(--fur2); transform-origin: 90% 80%; transform: rotate(-25deg); }
+        .pet .leg { top: 46px; width: 12px; height: 18px; background: var(--fur2); }
+        .pet .leg.b1 { left: 14px; } .pet .leg.b2 { left: 28px; } .pet .leg.f1 { left: 46px; } .pet .leg.f2 { left: 58px; }
+        .pet .body { left: 12px; top: 20px; width: 54px; height: 28px; background: var(--fur); }
+        .pet .ear { left: 54px; top: 0; width: 9px; height: 12px; background: var(--ear); } .pet .ear.e2 { left: 68px; }
+        .pet .head { left: 50px; top: 6px; width: 30px; height: 28px; background: var(--fur); }
+        .pet .snout { left: 68px; top: 18px; width: 16px; height: 13px; background: var(--fur2); }
+        .pet .eye { left: 60px; top: 14px; width: 5px; height: 5px; background: #000; border: 0; border-radius: 50%; }
+        .pet .nose { left: 79px; top: 19px; width: 5px; height: 5px; background: #000; border: 0; border-radius: 1px; }
+
+        /* ----- the tree ----- */
+        #scene .tree-trunk { position: absolute; width: 60px; height: 150px; box-sizing: border-box; border: 6px solid #000; border-radius: 4px; z-index: 2;
+            background: repeating-linear-gradient(90deg, #8a5528 0 12px, #6e4220 12px 16px); }
+        #scene .tree-canopy { position: absolute; width: 260px; height: 100px; box-sizing: border-box; border: 6px solid #000; border-radius: 8px; z-index: 2;
+            background-color: #1f7a30; background-image: radial-gradient(circle at 50% 50%, #2f9a42 0 7px, transparent 8px); background-size: 30px 30px; }
+        #scene .tree-front { position: absolute; width: 260px; height: 44px; box-sizing: border-box; border: 6px solid #000; border-radius: 4px 4px 8px 8px; z-index: 4;
+            background-color: #36b34a; background-image: radial-gradient(circle at 50% 50%, #55cf68 0 6px, transparent 7px); background-size: 26px 22px; }
+
+        .opt-head { margin: 10px 0 2px; }
+        .opt-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
         .prep-opt { display: flex; align-items: center; gap: 12px; padding: 5px 0; font-size: 1.05rem; cursor: pointer; }
         .prep-opt input { width: 24px; height: 24px; accent-color: var(--blue); margin: 0; }
     </style>
@@ -241,12 +282,25 @@
             <div style="display:flex; justify-content:space-between;"><span>Foils:</span><span id="foil-val" class="val">2</span></div>
             <input type="range" id="foil-slider" min="0" max="3" value="2" oninput="updateFoilText(this.value)" style="width:100%; margin:15px 0;">
             <label class="prep-opt" style="margin-top:4px;"><input type="checkbox" id="is-toggle" onchange="requireIs = this.checked"> Add the "is" symbol</label>
-            <div style="margin:10px 0 4px;">Words to practice:</div>
-            <label class="prep-opt"><input type="checkbox" value="on" checked onchange="togglePrep(this)"> on</label>
-            <label class="prep-opt"><input type="checkbox" value="in" checked onchange="togglePrep(this)"> in</label>
-            <label class="prep-opt"><input type="checkbox" value="under" checked onchange="togglePrep(this)"> under</label>
-            <label class="prep-opt"><input type="checkbox" value="out" checked onchange="togglePrep(this)"> out</label>
-            <label class="prep-opt"><input type="checkbox" value="behind" checked onchange="togglePrep(this)"> behind</label>
+            <div class="opt-head">Characters:</div>
+            <div class="opt-grid">
+                <label class="prep-opt"><input type="checkbox" value="He" checked onchange="toggleSet(this, enabledWho)"> he</label>
+                <label class="prep-opt"><input type="checkbox" value="She" checked onchange="toggleSet(this, enabledWho)"> she</label>
+                <label class="prep-opt"><input type="checkbox" value="It" checked onchange="toggleSet(this, enabledWho)"> it (pet)</label>
+            </div>
+            <div class="opt-head">Objects:</div>
+            <div class="opt-grid">
+                <label class="prep-opt"><input type="checkbox" value="box" checked onchange="toggleSet(this, enabledObjs)"> box</label>
+                <label class="prep-opt"><input type="checkbox" value="tree" checked onchange="toggleSet(this, enabledObjs)"> tree</label>
+            </div>
+            <div class="opt-head">Words to practice:</div>
+            <div class="opt-grid">
+                <label class="prep-opt"><input type="checkbox" value="on" checked onchange="togglePrep(this)"> on</label>
+                <label class="prep-opt"><input type="checkbox" value="in" checked onchange="togglePrep(this)"> in</label>
+                <label class="prep-opt"><input type="checkbox" value="under" checked onchange="togglePrep(this)"> under</label>
+                <label class="prep-opt"><input type="checkbox" value="out" checked onchange="togglePrep(this)"> out</label>
+                <label class="prep-opt"><input type="checkbox" value="behind" checked onchange="togglePrep(this)"> behind</label>
+            </div>
             <button onclick="toggleSettings()" style="background:var(--blue); color:white; width:100%; margin-top:10px; box-shadow:0 6px 0 #0069a8;">SAVE</button>
         </div>
     </div>
@@ -316,12 +370,19 @@
 
         // ---- Words & symbols ----
         const PREPS = ['on', 'in', 'under', 'out', 'behind'];
-        const WHO_IMG = { He: 'symbols/he.png', She: 'symbols/she.png' };
-        const OBJECT = { text: 'box', img: 'symbols/box.png', emoji: '📦' };   // add symbols/box.png any time; the emoji shows until then
+        const WHO_IMG = { He: 'symbols/he.png', She: 'symbols/she.png', It: 'symbols/it.png' };
+        const OBJECTS = {   // add symbols/box.png / symbols/tree.png any time; the emoji shows until then
+            box:  { text: 'box',  img: 'symbols/box.png',  emoji: '📦' },
+            tree: { text: 'tree', img: 'symbols/tree.png', emoji: '🌳' }
+        };
+        let enabledWho = new Set(['He', 'She', 'It']);
+        let enabledObjs = new Set(['box', 'tree']);
         let enabledPreps = new Set(PREPS);
         let requireIs = false;   // when true, sentences are She / is / under / box
 
         function shuffle(a) { return [...a].sort(() => 0.5 - Math.random()); }
+
+        function makeBag(arr) { let bag = []; return () => { if (!bag.length) bag = shuffle(arr); return bag.pop(); }; }
 
         function buildSession() {
             const pool = PREPS.filter(p => enabledPreps.has(p));
@@ -335,9 +396,11 @@
                     list.push(p); last = p;
                 }
             }
+            const nextWho = makeBag([...enabledWho]), nextObj = makeBag([...enabledObjs]);
             return list.map(prep => ({
                 prep,
-                who: Math.random() < 0.5 ? 'He' : 'She',
+                who: nextWho(),
+                obj: nextObj(),
                 look: ['', 'p2', 'p3', 'p4'][Math.floor(Math.random() * 4)]
             }));
         }
@@ -373,61 +436,134 @@
 
         
         // ---- The animated scene (all drawn with CSS: no image files) ----
-        // Scene is a fixed 520 x 340 stage that gets scaled to fit the picture area.
-        const BOX = { x: 185, top: 160, frontOffset: 25 };
-        const ACTOR = {   // final resting spot of the builder: centre-x, top-y, layer
-            on:     { cx: 260, top: 51,  z: 5 },
-            in:     { cx: 260, top: 135, z: 3 },
-            out:    { cx: 420, top: 156, z: 3 },
-            behind: { cx: 260, top: 92,  z: 1 },
-            under:  { cx: 260, top: 156, z: 5 }
+        // The stage is 520 wide and gets scaled to fit the picture area; tall scenes (tree) extend upward.
+        const GROUND = 270;   // y of the feet when standing on the ground
+        const ACT = {
+            human: { w: 40, h: 114, peek: 50 },   // peek = how much shows above a front wall when "in"
+            pet:   { w: 97, h: 74,  peek: 41 }
+        };
+
+        // Each object says where the actor ends up for each position word: centre-x, top-y, layer (z)
+        const OBJ_DEF = {
+            box: {
+                left: 185, rim: 160, outLift: 84, floats: true,
+                at(prep, kind, A) {
+                    switch (prep) {
+                        case 'on':     return { cx: 260, top: 165 - A.h, z: 5 };
+                        case 'in':     return { cx: 260, top: 185 - A.peek, z: 3 };
+                        case 'out':    return { cx: 420, top: GROUND - A.h, z: 3 };
+                        case 'behind': return kind === 'pet' ? { cx: 335, top: GROUND - 25 - A.h, z: 1 } : { cx: 260, top: 92, z: 1 };
+                        default:       return { cx: 260, top: GROUND - A.h, z: 5 };   // under
+                    }
+                },
+                html(prep, A) {
+                    const t = (prep === 'under') ? (GROUND - A.h) - 26 - 110 : 160;   // "under": the box floats above the actor
+                    return '<div class="crate-back obj-part" style="left:185px; top:' + t + 'px;"></div>' +
+                           '<div class="crate-front obj-part" style="left:185px; top:' + (t + 25) + 'px;"></div>' +
+                           (prep === 'under' ? '<div class="shadow" style="left:190px; top:262px;"></div>' : '');
+                }
+            },
+            tree: {
+                left: 130, rim: 40, outLift: 35, floats: false,
+                at(prep, kind, A) {
+                    switch (prep) {
+                        case 'on':     return { cx: 260, top: 40 - A.h, z: 5 };
+                        case 'in':     return { cx: 260, top: 96 - A.peek, z: 3 };
+                        case 'out':    return { cx: 420, top: GROUND - A.h, z: 3 };
+                        case 'behind': return kind === 'pet' ? { cx: 290, top: GROUND - 12 - A.h, z: 1 } : { cx: 290, top: 150, z: 1 };
+                        default:       return { cx: kind === 'pet' ? 180 : 190, top: GROUND - A.h, z: 5 };   // under
+                    }
+                },
+                html() {
+                    return '<div class="shadow" style="left:120px; top:258px; width:280px; height:22px;"></div>' +
+                           '<div class="tree-trunk obj-part" style="left:230px; top:120px;"></div>' +
+                           '<div class="tree-canopy obj-part" style="left:130px; top:40px;"></div>' +
+                           '<div class="tree-front obj-part" style="left:130px; top:96px;"></div>';
+                }
+            }
         };
 
         function sceneBM(trial) {
-            const hair = '<div class="hair' + (trial.who === 'She' ? ' long' : '') + '"></div>';
-            return '<div class="head">' + hair + '</div><div class="torso"><div class="arm l"></div><div class="arm r"></div></div><div class="legs"><div class="leg"></div><div class="leg"></div></div>';
+            const she = trial.who === 'She';
+            const hair = '<div class="hair' + (she ? ' long' : '') + '">' + (she ? '<div class="bow"></div>' : '') + '</div>';
+            const face = she ? '<div class="lash l"></div><div class="lash r"></div><div class="blush l"></div><div class="blush r"></div>' : '';
+            return '<div class="head">' + hair + face + '</div><div class="torso"><div class="arm l"></div><div class="arm r"></div></div>' +
+                   '<div class="legs"><div class="leg"></div><div class="leg"></div></div>' + (she ? '<div class="skirt"></div>' : '');
+        }
+        const PET_HTML = '<div class="pet-inner"><div class="tail"></div><div class="leg b1"></div><div class="leg b2"></div><div class="leg f1"></div><div class="leg f2"></div>' +
+                         '<div class="body"></div><div class="ear"></div><div class="ear e2"></div><div class="head"></div><div class="snout"></div><div class="eye"></div><div class="nose"></div></div>';
+
+        function trialParts(trial) {
+            const kind = (trial.who === 'It') ? 'pet' : 'human';
+            const A = ACT[kind], O = OBJ_DEF[trial.obj];
+            return { kind, A, O, f: O.at(trial.prep, kind, A) };
         }
 
+        // Movement paths are offsets from the final spot: {x, y, ms, ease}
+        function walk(x0, x1, y, ms, amp) {
+            const n = Math.max(2, Math.round(ms / 260)), out = [];
+            for (let i = 1; i <= n; i++) out.push({ x: x0 + (x1 - x0) * i / n, y: (i % 2 ? y - amp : y), ms: ms / n });
+            out[out.length - 1].y = y;
+            return out;
+        }
+        function pathFor(prep, kind, A, O, f) {
+            const amp = (kind === 'pet') ? 4 : 7;
+            const feet = f.top + A.h;
+            const gy = (GROUND - A.h) - f.top;   // offset (relative to the final spot) when standing on the ground
+            if (prep === 'on' || prep === 'in') {
+                const startX = 30 - f.cx;
+                const jx = (O.left - 40 - A.w / 2) - f.cx;
+                const apexFeet = (prep === 'on') ? feet - 30 : O.rim - 6;
+                const apex = { x: jx * 0.45, y: apexFeet - feet };
+                const up = 260 + (gy - apex.y) * 0.9, down = 260 + (-apex.y) * 0.9;
+                return [{ x: startX, y: gy, ms: 0 }, ...walk(startX, jx, gy, 1000, amp),
+                        { x: apex.x, y: apex.y, ms: up, ease: 'ease-out' }, { x: 0, y: 0, ms: down, ease: 'ease-in' }];
+            }
+            if (prep === 'out') {
+                const p = O.at('in', kind, A);
+                const st = { x: p.cx - f.cx, y: p.top - f.top };
+                const apex = { x: st.x * 0.62, y: st.y - O.outLift };
+                return [{ x: st.x, y: st.y, ms: 0 }, { x: st.x, y: st.y, ms: 500 },
+                        { x: apex.x, y: apex.y, ms: 420, ease: 'ease-out' }, { x: 0, y: 0, ms: 450, ease: 'ease-in' }];
+            }
+            if (prep === 'behind') {
+                const startX = ((kind === 'pet') ? 20 : 500) - f.cx;
+                return [{ x: startX, y: 0, ms: 0 }, ...walk(startX, 0, 0, (kind === 'pet') ? 1900 : 1500, amp)];
+            }
+            const startX = 30 - f.cx;   // under
+            return [{ x: startX, y: 0, ms: 0 }, ...walk(startX, 0, 0, 1500, amp)];
+        }
+
+        let sceneTop = 0;   // how far above y=0 the current scene reaches
         function renderScene(trial) {
             const sc = document.getElementById('scene');
-            const a = ACTOR[trial.prep];
-            const boxTop = (trial.prep === 'under') ? 20 : BOX.top;
-            const shadow = (trial.prep === 'under') ? '<div class="shadow" style="left:' + (BOX.x + 5) + 'px; top:262px;"></div>' : '';
+            const { kind, A, O, f } = trialParts(trial);
+            const segs = pathFor(trial.prep, kind, A, O, f);
+            sceneTop = Math.min(0, f.top + Math.min(...segs.map(sg => sg.y)) - 10);
+            const pos = 'left:' + (f.cx - A.w / 2) + 'px; top:' + f.top + 'px; z-index:' + f.z + ';';
+            const actor = (kind === 'pet')
+                ? '<div class="actor pet ' + trial.look + '" style="' + pos + '">' + PET_HTML + '</div>'
+                : '<div class="bm actor ' + trial.look + '" style="' + pos + '">' + sceneBM(trial) + '</div>';
             sc.innerHTML =
                 '<div class="sky"></div>' +
                 '<div class="cloud" style="left:40px; top:50px;"></div>' +
                 '<div class="cloud" style="left:380px; top:25px;"></div>' +
-                '<div class="baseplate"></div>' + shadow +
-                '<div class="crate-back" style="left:' + BOX.x + 'px; top:' + boxTop + 'px;"></div>' +
-                '<div class="crate-front" style="left:' + BOX.x + 'px; top:' + (boxTop + BOX.frontOffset) + 'px;"></div>' +
-                '<div class="bm actor ' + trial.look + '" style="left:' + (a.cx - 20) + 'px; top:' + a.top + 'px; z-index:' + a.z + ';">' + sceneBM(trial) + '</div>';
+                '<div class="cloud" style="left:330px; top:-70px;"></div>' +
+                '<div class="cloud" style="left:60px; top:-20px;"></div>' +
+                '<div class="baseplate"></div>' + O.html(trial.prep, A) + actor;
         }
 
         function fitScene() {
             const c = document.getElementById('gif-container');
             const sc = document.getElementById('scene');
             if (!c.clientWidth || !c.clientHeight) return;
-            const k = Math.min(c.clientWidth / 520, c.clientHeight / 340);
-            sc.style.transform = 'scale(' + k + ')';
+            const k = Math.min(c.clientWidth / 520, c.clientHeight / (340 - sceneTop));
+            const shift = (170 - (sceneTop + 340) / 2) * k;   // keep the whole scene centred in the picture area
+            sc.style.transform = 'translateY(' + shift + 'px) scale(' + k + ')';
         }
         window.addEventListener('resize', fitScene);
         window.addEventListener('orientationchange', () => setTimeout(fitScene, 300));
         if (window.ResizeObserver) new ResizeObserver(fitScene).observe(document.getElementById('gif-container'));
-
-        // Movement paths are offsets from the final spot: {x, y, ms, ease}
-        function walk(x0, x1, y, ms) {
-            const n = Math.max(2, Math.round(ms / 260)), out = [];
-            for (let i = 1; i <= n; i++) out.push({ x: x0 + (x1 - x0) * i / n, y: (i % 2 ? y - 7 : y), ms: ms / n });
-            out[out.length - 1].y = y;
-            return out;
-        }
-        const PATHS = {
-            on:     () => [{ x: -240, y: 105, ms: 0 }, ...walk(-240, -125, 105, 1000), { x: -65, y: -30, ms: 380, ease: 'ease-out' }, { x: 0, y: 0, ms: 380, ease: 'ease-in' }],
-            in:     () => [{ x: -240, y: 21, ms: 0 },  ...walk(-240, -130, 21, 1000),  { x: -50, y: -95, ms: 380, ease: 'ease-out' }, { x: 0, y: 0, ms: 380, ease: 'ease-in' }],
-            out:    () => [{ x: -160, y: -21, ms: 0 }, { x: -160, y: -21, ms: 500 }, { x: -100, y: -105, ms: 420, ease: 'ease-out' }, { x: 0, y: 0, ms: 420, ease: 'ease-in' }],
-            behind: () => [{ x: 240, y: 0, ms: 0 }, ...walk(240, 0, 0, 1500)],
-            under:  () => [{ x: -240, y: 0, ms: 0 }, ...walk(-240, 0, 0, 1500)]
-        };
 
         let sceneAnims = [];
         function playScene() {
@@ -437,7 +573,8 @@
             const actor = document.querySelector('#scene .actor');
             if (!trial || !actor || !actor.animate) return;   // no animation support: scene simply shows the final position
 
-            const segs = PATHS[trial.prep]();
+            const { kind, A, O, f } = trialParts(trial);
+            const segs = pathFor(trial.prep, kind, A, O, f);
             const total = segs.reduce((t, sg) => t + sg.ms, 0);
             let t = 0;
             const frames = segs.map((sg, i) => {
@@ -448,13 +585,17 @@
             frames[0].offset = 0;
             sceneAnims.push(actor.animate(frames, { duration: total, fill: 'none' }));
 
-            // The floating box in "under" bobs gently
-            if (trial.prep === 'under') {
-                document.querySelectorAll('#scene .crate-back, #scene .crate-front').forEach(el => {
+            // A floating box ("under") bobs gently
+            if (trial.prep === 'under' && O.floats) {
+                document.querySelectorAll('#scene .obj-part').forEach(el => {
                     sceneAnims.push(el.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-7px)' }, { transform: 'translateY(0)' }],
                                                { duration: 2200, iterations: Infinity, easing: 'ease-in-out' }));
                 });
             }
+            // The pet wags its tail
+            const tail = actor.querySelector('.tail');
+            if (tail) sceneAnims.push(tail.animate([{ transform: 'rotate(-40deg)' }, { transform: 'rotate(-5deg)' }],
+                                                  { duration: 260, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' }));
         }
 
         // Shrink symbols just enough that the bank, drop zone and buttons all fit on screen
@@ -479,6 +620,11 @@
         function toggleSettings() { const m = document.getElementById('settings-modal'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
         function updateFoilText(val) { numFoils = parseInt(val); document.getElementById('foil-val').innerText = val; }
         function updateTrialText(val) { totalTrialsRequested = parseInt(val); document.getElementById('trial-count-val').innerText = val; }
+        function toggleSet(cb, set) {
+            if (cb.checked) set.add(cb.value);
+            else if (set.size > 1) set.delete(cb.value);
+            else cb.checked = true;   // always keep at least one choice
+        }
         function togglePrep(cb) {
             if (cb.checked) enabledPreps.add(cb.value);
             else if (enabledPreps.size > 1) enabledPreps.delete(cb.value);
@@ -521,7 +667,7 @@
             let items = [
                 { text: trial.who, type: "who", img: WHO_IMG[trial.who] },
                 { text: trial.prep, type: "prep", img: `symbols/${trial.prep}.png` },
-                { text: OBJECT.text, type: "what", img: OBJECT.img, emoji: OBJECT.emoji }
+                { text: OBJECTS[trial.obj].text, type: "what", img: OBJECTS[trial.obj].img, emoji: OBJECTS[trial.obj].emoji }
             ];
             if (requireIs) items.push({ text: 'is', type: "doing", img: 'symbols/is.png', fallbackText: 'is' });   // green = verb
             // Foils are the other position words
@@ -536,7 +682,7 @@
                 div.className = `symbol ${item.type}`; div.draggable = true; div.dataset.text = item.text;
                 const img = document.createElement('img');
                 img.src = item.img; img.draggable = false;
-                if (item.emoji || item.fallbackText) img.onerror = () => { const e = document.createElement('div'); e.className = 'emoji-fallback' + (item.emoji ? '' : ' word'); e.textContent = item.emoji || item.fallbackText; img.replaceWith(e); };
+                img.onerror = () => { const e = document.createElement('div'); e.className = 'emoji-fallback' + (item.emoji ? '' : ' word'); e.textContent = item.emoji || item.fallbackText || item.text; img.replaceWith(e); };
                 const label = document.createElement('span'); label.textContent = item.text;
                 div.appendChild(img); div.appendChild(label);
                 div.onpointerdown = () => speak(item.text);
@@ -564,8 +710,9 @@
         function checkAnswer() {
             const placed = Array.from(dropZone.children);
             const trial = sessionTrials[currentIndex];
-            const sentence = `${trial.who} is ${trial.prep} the ${OBJECT.text}`;
-            const expected = requireIs ? [trial.who, 'is', trial.prep, OBJECT.text] : [trial.who, trial.prep, OBJECT.text];
+            const objText = OBJECTS[trial.obj].text;
+            const sentence = `${trial.who} is ${trial.prep === 'out' ? 'out of' : trial.prep} the ${objText}`;
+            const expected = requireIs ? [trial.who, 'is', trial.prep, objText] : [trial.who, trial.prep, objText];
             const isCorrect = (placed.length === expected.length) && expected.every((w, i) => placed[i].dataset.text === w);
             trialLog.push({ num: currentIndex + 1, target: sentence, status: isCorrect ? "Pass" : "Fail" });
             if (isCorrect) {
